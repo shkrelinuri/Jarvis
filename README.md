@@ -1,6 +1,6 @@
 # Jarvis AI Assistant
 
-A local AI desktop helper built with Node.js, Express, and a plain HTML/CSS/JavaScript chat UI. It runs the Qwen 3 4B open-weight model locally through Ollama and can open a small, explicit allowlist of Windows apps by text or browser voice input. Chat and model inference stay on your laptop. Anthropic is still an optional alternative provider.
+A local desktop assistant built with Node.js, Express, and a simple browser chat UI. Jarvis runs Qwen 3 through Ollama and can open a short list of Windows apps when asked. You can chat by typing or use your browser's voice input. Anthropic is also available as an optional provider.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ Leave the terminal and browser page open while you use Jarvis. It stays ready fo
 - The backend binds to `127.0.0.1` so its app-launch endpoint is not exposed to other devices on your network.
 - Set a different listening port with `PORT=4000` in `.env`, for example.
 
-## What “my own model” means here
+## About the model
 
 Jarvis now runs an actual open-weight language model locally. The downloaded Qwen model is pretrained by its authors; it is not trained from scratch or fine-tuned on your personal data. Jarvis adds your system prompt and a constrained app-opening tool. Training a foundation model from scratch would require a very large dataset and substantial GPU resources.
 
