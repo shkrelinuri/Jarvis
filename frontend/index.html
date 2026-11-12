@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f6fa" />
+    <title>Jarvis — AI Assistant</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Jarvis home">
+          <span class="brand-mark" aria-hidden="true">J</span>
+          <span>jarvis</span>
+        </a>
+        <span class="status"><span class="status-dot"></span> Your AI assistant</span>
+      </header>
+
+      <section class="chat-panel" aria-label="Chat with Jarvis">
+        <div class="conversation" id="conversation" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <div class="welcome-mark" aria-hidden="true">✦</div>
+            <p class="eyebrow">YOUR PERSONAL ASSISTANT</p>
+            <h1>What can I help<br />you with today?</h1>
+            <p class="welcome-copy">Ask a question, explore an idea, or get help with something you're working on.</p>
+            <div class="suggestions" aria-label="Suggested questions">
+              <button class="suggestion" type="button" data-prompt="Help me plan a productive day.">Plan a productive day <span>↗</span></button>
+              <button class="suggestion" type="button" data-prompt="Explain a complex idea in simple terms.">Explain something simply <span>↗</span></button>
+              <button class="suggestion" type="button" data-prompt="Help me brainstorm a few creative ideas.">Brainstorm ideas <span>↗</span></button>
+            </div>
+          </div>
+        </div>
+
+        <form class="composer" id="chat-form">
+          <label class="sr-only" for="message-input">Message Jarvis</label>
+          <textarea
+            id="message-input"
+            name="message"
+            rows="1"
+            maxlength="20000"
+            placeholder="Message Jarvis..."
+            required
+          ></textarea>
+          <div class="composer-footer">
+            <span class="hint">Enter to send · Shift + Enter for a new line</span>
+            <button class="send-button" id="send-button" type="submit" aria-label="Send message">
+              <span>Send</span><span aria-hidden="true">↑</span>
+            </button>
+          </div>
+        </form>
+        <p class="disclaimer">Jarvis can make mistakes. Check important information.</p>
+      </section>
+    </main>
+  </body>
+</html>

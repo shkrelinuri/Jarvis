@@ -1,0 +1,16 @@
+{
+  "name": "jarvis-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A simple streaming AI assistant with an Express backend and browser chat UI.",
+  "workspaces": [
+    "backend"
+  ],
+  "scripts": {
+    "start": "npm --workspace backend start",
+    "dev": "npm --workspace backend run dev"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
