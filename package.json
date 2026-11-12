@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "start": "npm --workspace backend start",
-    "dev": "npm --workspace backend run dev"
+    "dev": "npm --workspace backend run dev",
+    "test": "npm --workspace backend test"
   },
   "engines": {
     "node": ">=20"

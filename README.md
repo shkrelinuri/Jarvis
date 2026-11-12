@@ -1,11 +1,12 @@
 # Jarvis AI Assistant
 
-A lightweight streaming chat assistant built with Node.js, Express, plain HTML/CSS/JavaScript, and the Anthropic Claude API. The provider call is contained in the backend, so it is straightforward to swap in another model API later.
+A local AI desktop helper built with Node.js, Express, and a plain HTML/CSS/JavaScript chat UI. It runs the Qwen 3 4B open-weight model locally through Ollama and can open a small, explicit allowlist of Windows apps by text or browser voice input. Chat and model inference stay on your laptop. Anthropic is still an optional alternative provider.
 
 ## Requirements
 
 - Node.js 20 or newer
-- An Anthropic API key
+- Ollama for local model chat (no API key)
+- Windows for desktop app launching
 
 ## Setup
 
@@ -13,16 +14,18 @@ Run these commands in the project root (`C:\Users\Admin\Desktop\Jarvis`):
 
 ```powershell
 npm install
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-Open the new `.env` file and paste your key after `ANTHROPIC_API_KEY=`:
+Install Ollama for Windows from [ollama.com/download/windows](https://ollama.com/download/windows), then download the starter model from the project root:
 
-```text
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+```powershell
+ollama pull qwen3:4b
 ```
 
-Never commit or share `.env`; it is excluded by `.gitignore`. The `.env.example` file is safe to keep in version control and contains no key.
+The model download is about 2.5 GB. This computer has 16 GB of RAM and integrated Intel graphics, so this 4B model is a reasonable CPU-running starting point; replies may be slower than on a dedicated GPU. Ollama stores model weights in its own model directory, not in this Git project.
+
+No API key is needed for local chat. If you want to use Claude instead, paste your key after `ANTHROPIC_API_KEY=` in `.env`, then set `MODEL_PROVIDER=anthropic`. Never commit or share `.env`; it is excluded by `.gitignore`.
 
 ## Run
 
@@ -32,14 +35,24 @@ From the project root:
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000). For automatic restarts while editing the backend, use `npm run dev`.
+Open [http://localhost:3000](http://localhost:3000). Type “Open Task Manager” or click the microphone and say it. The microphone uses your browser's speech recognition; allow microphone access when prompted. Depending on the browser, speech recognition may use the browser vendor's service to transcribe audio. Current versions of Edge or Chrome are recommended.
+
+Leave the terminal and browser page open while you use Jarvis. It stays ready for another command as long as the Node server is running. Stop it with `Ctrl+C` in the terminal. For automatic backend restarts while editing, use `npm run dev`.
 
 ## Customize
 
 - Change the assistant's behavior in [backend/systemPrompt.js](./backend/systemPrompt.js).
-- Swap providers in [backend/providers/anthropic.js](./backend/providers/anthropic.js); the Express endpoint calls that small adapter.
+- The local model settings are `OLLAMA_MODEL` and `OLLAMA_BASE_URL` in `.env`. The starter model is `qwen3:4b`.
+- Switch to Anthropic by setting `MODEL_PROVIDER=anthropic` and adding your key to `.env`.
+- Ollama tool calls are limited to the exact app allowlist in [backend/actions/windowsApps.js](./backend/actions/windowsApps.js). The model cannot execute arbitrary shell commands or modify files.
+- Review the explicit Windows app allowlist and supported phrasing in [backend/actions/windowsApps.js](./backend/actions/windowsApps.js). Command Prompt is allowed to open, but Jarvis does not execute shell commands; arbitrary command execution is not enabled.
 - The browser keeps conversation history in memory for the current page session. Reloading the page starts a new conversation.
+- The backend binds to `127.0.0.1` so its app-launch endpoint is not exposed to other devices on your network.
 - Set a different listening port with `PORT=4000` in `.env`, for example.
+
+## What “my own model” means here
+
+Jarvis now runs an actual open-weight language model locally. The downloaded Qwen model is pretrained by its authors; it is not trained from scratch or fine-tuned on your personal data. Jarvis adds your system prompt and a constrained app-opening tool. Training a foundation model from scratch would require a very large dataset and substantial GPU resources.
 
 ## Project layout
 
@@ -47,13 +60,17 @@ Open [http://localhost:3000](http://localhost:3000). For automatic restarts whil
 backend/
   package.json       Express and Anthropic API dependencies
   server.js          API endpoint and static frontend server
+  actions/
+    windowsApps.js   Safe allowlist for Windows app launching
+    windowsApps.test.js  Tests for allowed command matching
   providers/
-    anthropic.js     Claude adapter; replace this to use another provider
+    ollama.js        Local model API and constrained app tool
+    anthropic.js     Optional hosted Claude adapter
   systemPrompt.js    Editable assistant instructions
 frontend/
   index.html         Chat page structure
   styles.css         Responsive chat styling
-  app.js             Chat history and streaming UI behavior
+  app.js             Chat history, app commands, and voice UI
 .env                 Local API key (ignored by git)
 .env.example         Safe environment-variable template
 package.json         Workspace scripts
@@ -61,16 +78,17 @@ package.json         Workspace scripts
 
 ## Test checklist
 
-1. Run `npm install`, add your key to `.env`, and start with `npm start`.
-2. Visit `http://localhost:3000`; confirm the welcome screen and suggestion buttons appear.
-3. Send a message and confirm the assistant reply streams into the chat.
-4. Ask a follow-up that refers to the first message; confirm the assistant uses the conversation history.
-5. Try Enter to send, Shift+Enter for a newline, and a suggestion button.
-6. Temporarily clear `ANTHROPIC_API_KEY` in `.env`, restart, and confirm the page reports a helpful missing-key error. Restore the key afterward.
-7. Check `git status --short` and confirm `.env` is not listed.
+1. Run `npm install` and `npm test` from the project root.
+2. Start with `npm start` and visit `http://localhost:3000`.
+3. Type “Open Task Manager” and confirm Task Manager launches; try Notepad, Calculator, and File Explorer too.
+4. Ask for an unsupported app such as “Open Paint” and confirm it is not launched.
+5. In Edge or Chrome, allow microphone access, click the microphone, and say “Open Task Manager.”
+6. Ask a general question and confirm the local model replies without an API key.
+7. Ask Jarvis to open Command Prompt in a natural phrasing such as “Could you open my command prompt?” and confirm it launches only the approved app.
+8. Check `git status --short` and confirm `.env` is not listed.
 
 ## Next steps
 
-1. Add tool/function calling for actions such as web search or calendar lookups.
-2. Save conversations to a database so chats persist across reloads.
-3. Add retrieval over your own documents to give the assistant custom knowledge.
+1. Add more explicitly approved apps and useful actions such as opening specific folders.
+2. Fine-tune a small model on your own examples after the local assistant works reliably.
+3. Add more individually approved tools such as opening a folder or searching selected documents.

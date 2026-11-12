@@ -252,10 +252,38 @@ h1 {
   margin-top: 7px;
 }
 
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .hint,
 .disclaimer {
   color: #a0a1ab;
   font-size: 11px;
+}
+
+.voice-button {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  border: 1px solid #e8e8f0;
+  border-radius: 9px;
+  color: #7164c3;
+  background: #fff;
+  font-size: 16px;
+}
+
+.voice-button:hover:not(:disabled) {
+  border-color: #bcb3ed;
+  background: #faf9ff;
+}
+
+.voice-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .send-button {
@@ -288,6 +316,14 @@ h1 {
 
 .disclaimer {
   margin: 12px 0 19px;
+  text-align: center;
+}
+
+.voice-status {
+  min-height: 16px;
+  margin: 0;
+  color: #777989;
+  font-size: 11px;
   text-align: center;
 }
 

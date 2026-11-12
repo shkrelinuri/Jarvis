@@ -3,6 +3,9 @@ const welcome = document.querySelector('#welcome');
 const form = document.querySelector('#chat-form');
 const input = document.querySelector('#message-input');
 const sendButton = document.querySelector('#send-button');
+const voiceButton = document.querySelector('#voice-button');
+const voiceStatus = document.querySelector('#voice-status');
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 // Keep the full conversation in memory so each request includes prior turns.
 const messages = [];
@@ -20,12 +23,38 @@ function addMessage(role, content, extraClass = '') {
 function setLoading(loading) {
   isSending = loading;
   sendButton.disabled = loading;
+  voiceButton.disabled = loading || !SpeechRecognition;
   sendButton.querySelector('span:first-child').textContent = loading ? 'Thinking' : 'Send';
   input.disabled = loading;
 }
 
 async function sendMessage(text) {
   if (isSending || !text.trim()) return;
+
+  setLoading(true);
+  try {
+    const actionResponse = await fetch('/api/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: text }),
+    });
+    const action = await actionResponse.json();
+    if (!actionResponse.ok) throw new Error(action.error || 'The command could not be completed.');
+
+    if (action.handled) {
+      welcome.hidden = true;
+      addMessage('user', text);
+      addMessage('assistant', action.message);
+      input.value = '';
+      input.style.height = 'auto';
+      return;
+    }
+  } catch (error) {
+    addMessage('assistant', error.message || 'The command could not be completed.', 'error');
+    return;
+  } finally {
+    setLoading(false);
+  }
 
   welcome.hidden = true;
   messages.push({ role: 'user', content: text });
@@ -118,3 +147,41 @@ input.addEventListener('keydown', (event) => {
 document.querySelectorAll('.suggestion').forEach((button) => {
   button.addEventListener('click', () => sendMessage(button.dataset.prompt));
 });
+
+if (!SpeechRecognition) {
+  voiceButton.disabled = true;
+  voiceButton.title = 'Voice input is not supported in this browser. Try a current version of Edge or Chrome.';
+} else {
+  voiceButton.addEventListener('click', () => {
+    const recognition = new SpeechRecognition();
+    recognition.lang = navigator.language || 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    voiceButton.disabled = true;
+    voiceStatus.textContent = 'Listening…';
+
+    recognition.addEventListener('result', (event) => {
+      const transcript = event.results[0][0].transcript.trim();
+      voiceStatus.textContent = `Heard: “${transcript}”`;
+      if (transcript) sendMessage(transcript);
+    });
+    recognition.addEventListener('error', (event) => {
+      voiceStatus.textContent = event.error === 'not-allowed'
+        ? 'Microphone access was denied. Allow it in your browser settings to use voice.'
+        : `Voice input failed: ${event.error}. You can still type a command.`;
+    });
+    recognition.addEventListener('end', () => {
+      voiceButton.disabled = isSending;
+      if (voiceStatus.textContent === 'Listening…') {
+        voiceStatus.textContent = 'No speech detected. Click the microphone and try again.';
+      }
+    });
+
+    try {
+      recognition.start();
+    } catch (error) {
+      voiceButton.disabled = false;
+      voiceStatus.textContent = `Could not start voice input: ${error.message}`;
+    }
+  });
+}
