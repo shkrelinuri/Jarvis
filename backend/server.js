@@ -1,8 +1,8 @@
 import 'dotenv/config';
-import Anthropic from '@anthropic-ai/sdk';
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createReplyStream, isConnectionError } from './providers/anthropic.js';
 import { systemPrompt } from './systemPrompt.js';
 
 const app = express();
@@ -45,16 +45,8 @@ app.post('/api/chat', async (req, res) => {
     });
   }
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
   try {
-    const stream = await client.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages,
-      stream: true,
-    });
+    const stream = await createReplyStream(messages, systemPrompt);
 
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -77,7 +69,7 @@ app.post('/api/chat', async (req, res) => {
       message = 'The Anthropic API key was rejected. Check your .env file.';
     } else if (status === 429) {
       message = 'The API is rate-limiting requests. Please wait a moment and try again.';
-    } else if (status >= 500 || error instanceof Anthropic.APIConnectionError) {
+    } else if (status >= 500 || isConnectionError(error)) {
       message = 'Could not reach the model service. Check your connection and try again.';
     }
 

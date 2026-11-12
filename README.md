@@ -37,7 +37,7 @@ Open [http://localhost:3000](http://localhost:3000). For automatic restarts whil
 ## Customize
 
 - Change the assistant's behavior in [backend/systemPrompt.js](./backend/systemPrompt.js).
-- Change the Claude model or provider integration in [backend/server.js](./backend/server.js).
+- Swap providers in [backend/providers/anthropic.js](./backend/providers/anthropic.js); the Express endpoint calls that small adapter.
 - The browser keeps conversation history in memory for the current page session. Reloading the page starts a new conversation.
 - Set a different listening port with `PORT=4000` in `.env`, for example.
 
@@ -47,6 +47,8 @@ Open [http://localhost:3000](http://localhost:3000). For automatic restarts whil
 backend/
   package.json       Express and Anthropic API dependencies
   server.js          API endpoint and static frontend server
+  providers/
+    anthropic.js     Claude adapter; replace this to use another provider
   systemPrompt.js    Editable assistant instructions
 frontend/
   index.html         Chat page structure
